@@ -23,8 +23,12 @@ import firebase from "firebase/compat/app";
 // import { initializeApp } from "firebase/app"
 
 import{
-  getFirestore, collection, getDocs, addDoc, deleteDoc, doc
+  getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp, getDoc, updateDoc
 }from 'firebase/firestore'
+
+import{
+  getAuth
+}from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: "AIzaSyBVtKAzZQB6lS9lvA_ciQ_NQX0icQlyupQ",
@@ -40,20 +44,34 @@ firebase.initializeApp(firebaseConfig);
 
 // init services
 const db = getFirestore()
-
+const auth = getAuth()
 
 //collection ref
 const colRef = collection(db, 'books')
 
 // get collection data
-getDocs(colRef).then((snapshot)=>{
+// getDocs(colRef)
+// .then((snapshot)=>{
+//   let books = []
+//   snapshot.docs.forEach((doc)=>{
+//     books.push({ ...doc.data(), id: doc.id})
+//   })
+//   console.log(books);
+// }).catch(err =>{
+//   console.log(err.message)
+// })
+
+
+// queries 
+const q = query(colRef, orderBy('createdAt'))
+
+
+onSnapshot(q, (snapshot) =>{
   let books = []
   snapshot.docs.forEach((doc)=>{
     books.push({ ...doc.data(), id: doc.id})
   })
-  console.log(books);
-}).catch(err =>{
-  console.log(err.message)
+  console.log(books)
 })
 
 
@@ -66,6 +84,7 @@ addBookForm.addEventListener('submit',(e)=>{
   addDoc(colRef, {
     title: addBookForm.title.value,
     author: addBookForm.author.value,
+    createdAt: serverTimestamp()
   }).then(() => {
     addBookForm.reset();
   })
@@ -85,6 +104,33 @@ deleteBooksForm.addEventListener('submit', (e)=>{
     deleteBooksForm.reset()
   })
 })
+
+
+//getting a single document
+
+const  docRef = doc(db, 'books', 'kac53CMU87X1ezTgyBYi')
+
+onSnapshot(docRef, (doc)=>{
+  console.log(doc.data(), doc.id)
+})
+
+
+//update a document
+ const updateForm = document.querySelector('.update')
+ updateForm.addEventListener('submit', (e)=>{
+  e.preventDefault()
+
+  const docRef = doc(db, 'books', updateForm.id.value)
+
+  updateDoc(docRef, {
+    title: 'updated title'
+
+  }).then(()=>{
+    updateForm.reset
+  })
+
+
+ })
 
 //----------------------------------------------------------------
 
